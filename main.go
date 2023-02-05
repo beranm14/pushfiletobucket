@@ -15,18 +15,24 @@ import (
 
 func push(wr http.ResponseWriter, req *http.Request) {
 	ctx := context.Background()
-	client, _ := storage.NewClient(ctx)
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		fmt.Println(err)
+	}
 	bkt := client.Bucket(os.Getenv("BUCKET_NAME"))
-	body, _ := ioutil.ReadAll(req.Body)
+	body, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
 	sha256 := sha256.Sum256(body)
-	obj := bkt.Object(string(sha256[:]))
+	obj := bkt.Object(fmt.Sprintf("%x", sha256))
 	w := obj.NewWriter(ctx)
 	if _, err := fmt.Fprintf(w, string(body[:])); err != nil {
-		// TODO: Handle error.
+		fmt.Println(err)
 	}
 	// Close, just like writing a file.
 	if err := w.Close(); err != nil {
-		// TODO: Handle error.
+		fmt.Println(err)
 	}
 }
 
