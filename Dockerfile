@@ -2,6 +2,9 @@ FROM golang:latest AS build
 
 WORKDIR /opt
 COPY main.go /opt/main.go
+COPY go.mod /opt/go.mod
+COPY go.sum /opt/go.sum
+RUN go get
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main main.go
 
 FROM debian:buster-slim
