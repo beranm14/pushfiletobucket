@@ -30,7 +30,6 @@ func push(wr http.ResponseWriter, req *http.Request) {
 	if _, err := fmt.Fprintf(w, string(body[:])); err != nil {
 		fmt.Println(err)
 	}
-	// Close, just like writing a file.
 	if err := w.Close(); err != nil {
 		fmt.Println(err)
 	}
