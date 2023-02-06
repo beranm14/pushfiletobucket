@@ -7,10 +7,13 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 
 	storage "cloud.google.com/go/storage"
+	"contrib.go.opencensus.io/exporter/stackdriver"
+	"go.opencensus.io/trace"
 )
 
 func push(wr http.ResponseWriter, req *http.Request) {
@@ -40,12 +43,29 @@ func healthz(w http.ResponseWriter, req *http.Request) {
 	fmt.Println("healthz called")
 }
 
+func fail(w http.ResponseWriter, req *http.Request) {
+	fmt.Println("fail called")
+	panic("fail")
+}
+
 func main() {
+	exporter, err := stackdriver.NewExporter(stackdriver.Options{
+		ProjectID: os.Getenv("GOOGLE_CLOUD_PROJECT"),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	trace.RegisterExporter(exporter)
+
+	// carefull
+	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
+
 	http.HandleFunc("/push", push)
 	http.HandleFunc("/healthz", healthz)
+	http.HandleFunc("/fail", fail)
 
 	fmt.Println("Listening on port", os.Getenv("PORT"))
-	err := http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("PORT")), nil)
+	err = http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("PORT")), nil)
 	if err != nil {
 		panic(err)
 	}
