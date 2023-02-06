@@ -10,9 +10,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	storage "cloud.google.com/go/storage"
 	"contrib.go.opencensus.io/exporter/stackdriver"
+	"github.com/getsentry/sentry-go"
 	"go.opencensus.io/trace"
 )
 
@@ -49,6 +51,16 @@ func fail(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
+	if os.Getenv("SENTRY_DSN") == "" {
+		err := sentry.Init(sentry.ClientOptions{
+			Dsn:   "https://b27d9aafaba844f5818b854247549d9d@o232204.ingest.sentry.io/1393955",
+			Debug: true,
+		})
+		if err != nil {
+			log.Fatalf("sentry.Init: %s", err)
+		}
+		defer sentry.Flush(2 * time.Second)
+	}
 	exporter, err := stackdriver.NewExporter(stackdriver.Options{
 		ProjectID: os.Getenv("GOOGLE_CLOUD_PROJECT"),
 	})
