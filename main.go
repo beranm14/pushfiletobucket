@@ -51,9 +51,9 @@ func fail(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-	if os.Getenv("SENTRY_DSN") == "" {
+	if os.Getenv("SENTRY_DSN") != "" {
 		err := sentry.Init(sentry.ClientOptions{
-			Dsn:   "https://b27d9aafaba844f5818b854247549d9d@o232204.ingest.sentry.io/1393955",
+			Dsn:   os.Getenv("SENTRY_DSN"),
 			Debug: true,
 		})
 		if err != nil {
