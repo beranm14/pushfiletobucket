@@ -53,8 +53,9 @@ func fail(w http.ResponseWriter, req *http.Request) {
 func main() {
 	if os.Getenv("SENTRY_DSN") != "" {
 		err := sentry.Init(sentry.ClientOptions{
-			Dsn:   os.Getenv("SENTRY_DSN"),
-			Debug: true,
+			Dsn:              os.Getenv("SENTRY_DSN"),
+			Debug:            true,
+			TracesSampleRate: 1.0,
 		})
 		if err != nil {
 			log.Fatalf("sentry.Init: %s", err)
