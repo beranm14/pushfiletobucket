@@ -48,16 +48,18 @@ func healthz(w http.ResponseWriter, req *http.Request) {
 
 func fail(w http.ResponseWriter, req *http.Request) {
 	fmt.Println("fail called")
-	if os.Getenv("SENTRY_DSN") != "" {
+	_, exists := os.LookupEnv("SENTRY_DSN")
+	if exists {
 		sentry.CaptureException(errors.New("/fail called")) // check Sentry
 	}
 	panic("fail") // check Google Cloud Error Reporting
 }
 
 func main() {
-	if os.Getenv("SENTRY_DSN") != "" {
+	value, exists := os.LookupEnv("SENTRY_DSN")
+	if exists {
 		err := sentry.Init(sentry.ClientOptions{
-			Dsn:              os.Getenv("SENTRY_DSN"),
+			Dsn:              value,
 			Debug:            true,
 			TracesSampleRate: 1.0,
 		})
@@ -65,6 +67,8 @@ func main() {
 			log.Fatalf("sentry.Init: %s", err)
 		}
 		defer sentry.Flush(2 * time.Second)
+		fmt.Println("Sentry initialized")
+		sentry.CaptureMessage("check")
 	}
 	exporter, err := stackdriver.NewExporter(stackdriver.Options{
 		ProjectID: os.Getenv("GOOGLE_CLOUD_PROJECT"),
