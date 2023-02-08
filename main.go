@@ -5,6 +5,7 @@ package main
 import (
 	"context"
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -47,7 +48,10 @@ func healthz(w http.ResponseWriter, req *http.Request) {
 
 func fail(w http.ResponseWriter, req *http.Request) {
 	fmt.Println("fail called")
-	panic("fail")
+	if os.Getenv("SENTRY_DSN") != "" {
+		sentry.CaptureException(errors.New("/fail called")) // check Sentry
+	}
+	panic("fail") // check Google Cloud Error Reporting
 }
 
 func main() {
